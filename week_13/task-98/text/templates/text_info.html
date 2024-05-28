@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Info</title>
+</head>
+<body>
+    <h1> {{text.title}} </h1>
+    <p> {{text.text}} </p>
+    <form method='POST' enctype='multipart/form-data'>
+        {% csrf_token %}
+        <a href= {% url "edit_text" text.id %}>Edit Text</a>
+    </form>
+</body>
+</html>

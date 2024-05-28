@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Texts</title>
+</head>
+<body>
+    {% for text in texts %}
+    <p><a href = {% url "text_info" text.id%}> {{text.title}}</a> </p> <br>
+    {% endfor %}
+
+    <a href = {% url "add_text" %}>Add New text <a/>
+</body>
+</html>

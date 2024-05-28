@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{course.title}}</title>
+</head>
+<body>
+    {% if user.is_authenticated and user.is_staff %}
+
+    <h1>{{course.title}}</h1>
+    <p> {{course.description}}</p>
+    <a href = {% url "edit_course" course.id %}>Edit Course</a>
+    <a href = {% url "delete_course" course.id %}>Delete Course</a>
+    <a href= {% url "add_favourite" course.id %}>Add to favourite</a>
+
+    <a href = {% url "index" %}>Back</a>
+
+    {% elif user.is_authenticated and not user.is_staff %}
+
+    <h1>{{course.title}}</h1>
+    <p> {{course.description}}</p>
+    <a href= {% url "add_favourite" course.id %}>Add to favourite</a>
+    <a href = {% url "delete_favourite" course.id %}>Delete From Favourite</a>
+    <a href = {% url "index" %}>Back</a>
+
+    {% endif %}
+    
+</body>
+</html>
