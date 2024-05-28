@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URLS</title>
+</head>
+<body>
+    <h1> URLS </h1><br>
+
+    {% for url in urls %}
+        <a href = {% url 'url_info' url.id %}> {{url.long_url}} </a>
+    {% endfor %}
+
+    <form method = 'POST'>
+        {% csrf_token %}
+        <input type='text' name = 'new_url'>
+        <button type='submit'>Add new URL</button>
+    </form>
+</body>
+</html>

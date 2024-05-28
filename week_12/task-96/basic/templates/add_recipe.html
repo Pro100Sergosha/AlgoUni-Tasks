@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Recipe</title>
+</head>
+<body>
+    <form method='post'>
+        {% csrf_token %}
+        Name: <input type = 'text' name = 'name'><br>
+        Ingredients: <input type = 'text' name = 'ingredients'><br>
+        Instructions: <input type = 'text' name = 'instructions'><br>
+        <button type='submit'>Add New Recipe</button>
+    </form>
+</body>
+</html>

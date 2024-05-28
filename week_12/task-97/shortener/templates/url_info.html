@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL INFO</title>
+</head>
+<body>
+    Original URL: {{url.long_url}} <br>
+    Shortened URL: <a href = {% url 'url_redirection' url.id %}> {{url.short_url}} </a> <br>
+    Redirections: {{url.redirections}} <br>
+    <a href = {% url 'index' %}>Back</a>
+</body>
+</html>
