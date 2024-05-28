@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+</head>
+<body>
+    <form method = "post">
+        {% csrf_token %}
+        <p>Enter a noun</p>
+        <input name='noun'>
+        <p>Enter a verb</p>
+        <input name='verb'>
+        <p>Enter a adjective</p>
+        <input name='adjective'>
+        <p>Enter a adverb</p>
+        <input name='adverb'>
+        <button type='submit'>Submit</button>
+    </form>
+</body>
+</html>
