@@ -10,6 +10,9 @@ class CustomUser(AbstractUser):
     )
     role = models.CharField(max_length=8, choices=ROLE_CHOICES, default='Customer')
 
+class DeliveryProof(models.Model):
+    image = models.ImageField(upload_to='delivery_proofs/')
+    timestamp = models.DateTimeField(auto_now_add=True)
 
 class Parcel(models.Model):
     STATUS_CHOICES = (
@@ -26,9 +29,6 @@ class Parcel(models.Model):
     courier = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='courier_parcels', null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     delivered_at = models.DateTimeField(null=True)
+    delivery_proof = models.OneToOneField(DeliveryProof, on_delete=models.CASCADE, null=True)
 
 
-class DeliveryProof(models.Model):
-    parcel = models.OneToOneField(Parcel, on_delete=models.CASCADE)
-    image = models.ImageField()
-    timestamp = models.DateTimeField(auto_now_add=True)

@@ -53,3 +53,71 @@ class ParcelViewset(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class ChangeParcelViewset(APIView):
+    permission_classes = [IsAuthenticated, CanChangeParcelStatus, CanCreateParcels]
+    def get(self, request, id):
+        try:
+            parcel = Parcel.objects.get(id=id)
+        except Parcel.DoesNotExist:
+            return Response({'message': 'Parcel not found'}, status=status.HTTP_404_NOT_FOUND)
+        if request.user.role in ['customer', 'admin']:
+            serializer = ParcelSerializer(parcel)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        elif request.user.role == 'courier' and parcel.status not in ['In Transit', 'Delivered']:
+            serializer = ParcelSerializer(parcel, data=request.data, partial=True)
+            parcel.status = 'In Transit'
+            if serializer.is_valid():
+                serializer.save(courier = request.user)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'This parcel is in transit or already delivered'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def put(self, request, id):
+        try:
+            parcel = Parcel.objects.get(id=id)
+        except Parcel.DoesNotExist:
+            return Response({'message': 'Parcel not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user.role in ['customer', 'admin']:
+            
+            serializer = ParcelSerializer(parcel, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save(courier = parcel.courier)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'message': 'Not Allowed'}, status=status.HTTP_403_FORBIDDEN)
+        
+    def delete(self, request, id):
+        try:
+            parcel = Parcel.objects.get(id=id)
+        except Parcel.DoesNotExist:
+            return Response({'message': 'Parcel not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user.role in ['customer', 'admin']:
+            parcel.delete()
+            return Response({'message': 'Parcel Deleted Successfuly'}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({'message': 'Not Allowed'}, status=status.HTTP_403_FORBIDDEN)
+
+class DeliveryProofViewset(APIView):
+    permission_classes = [IsAuthenticated, CanChangeParcelStatus]
+    def post(self, request, id):
+        try:
+            parcel = Parcel.objects.get(id=id)
+        except Parcel.DoesNotExist:
+            return Response({'message': 'Parcel not found'}, status=status.HTTP_404_NOT_FOUND)
+        if not parcel.delivery_proof and request.user.role in ['courier', 'admin']:
+            serializer = DeliveryProofSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                delivery_proof = DeliveryProof.objects.get(id = serializer.data['id'])
+                parcel_serializer= ParcelSerializer(parcel, data=request.data, partial=True)
+                if parcel_serializer.is_valid():
+                    parcel_serializer.save(delivery_proof=delivery_proof)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors)
+        else:
+            return Response({'message': 'entered else statement'})
