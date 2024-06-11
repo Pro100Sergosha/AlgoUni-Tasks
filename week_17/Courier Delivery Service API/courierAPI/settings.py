@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'drf_yasg',
     'rest_framework',
+    'rest_framework_simplejwt',
     'courier',
 ]
 
@@ -84,7 +85,7 @@ AUTH_USER_MODEL = "courier.CustomUser"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.getenv('DATABASE_NAME'),
+        'NAME': BASE_DIR / 'db.sqlite3',
         # 'USER': os.getenv('DATABASE_USER'),
         # 'PASSWORD': 'admin',
         # 'HOST': 'localhost',
@@ -134,3 +135,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
