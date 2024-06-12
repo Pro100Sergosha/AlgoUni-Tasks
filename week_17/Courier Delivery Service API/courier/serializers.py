@@ -22,6 +22,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
     
 
 class ParcelSerializer(serializers.ModelSerializer):
+    sender = CustomUserSerializer(read_only=True)
+    courier = CustomUserSerializer(read_only=True)
+    delivery_proof = DeliveryProofSerializer(read_only=True)
     class Meta:
         model = Parcel
         fields = '__all__'

@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.dispatch import receiver
+from django.db.models.signals import  post_save
+from django.utils import timezone
 
 
 class CustomUser(AbstractUser):
@@ -32,3 +35,7 @@ class Parcel(models.Model):
     delivery_proof = models.OneToOneField(DeliveryProof, on_delete=models.CASCADE, null=True)
 
 
+@receiver(post_save, sender=Parcel)
+def delivered_at_correction(sender, instance, **kwargs):
+    if instance.status == 'delivered':
+        instance.delivered_at = timezone.now()
