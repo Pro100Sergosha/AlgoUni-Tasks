@@ -3,11 +3,11 @@ from .views import UserView, ParcelViewset, ChangeParcelViewset, DeliveryProofVi
 
 
 urlpatterns = [
-    path('users/', UserView.as_view()),
-    path('parcels/', ParcelViewset.as_view()),
-    path('parcels/<int:id>', ChangeParcelViewset.as_view()),
-    path('take-parcel/<int:id>', TakeParcelViewset.as_view()),
-    path('parcels/<int:id>/delivery_proof/', DeliveryProofViewset.as_view()),
-    path('parcels/<int:id>/delivered/', MarkAsDeliveredView.as_view()),
-    path('courier-parcels/', ListCourierParcels.as_view())
+    path('users/', UserView.as_view(), name='users'),
+    path('parcels/', ParcelViewset.as_view(), name='parcels'),
+    path('parcels/<int:id>', ChangeParcelViewset.as_view(), name='edit-parcel'),
+    path('take-parcel/<int:id>', TakeParcelViewset.as_view(), name='take-parcel'),
+    path('parcels/<int:id>/delivery_proof/', DeliveryProofViewset.as_view(), name='delivery-proof'),
+    path('parcels/<int:id>/delivered/', MarkAsDeliveredView.as_view(), name='mark-as-delivered'),
+    path('courier-parcels/', ListCourierParcels.as_view(), name='courier-parcels')
 ]

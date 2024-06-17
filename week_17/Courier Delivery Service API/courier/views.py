@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
@@ -32,16 +33,13 @@ class ParcelViewset(APIView):
     permission_classes = [IsAuthenticated, CanCreateParcels]
     def get(self, request):
         if request.user.role == 'customer':
-            user = CustomUser.objects.get(id=request.user.id)
-            parcels = Parcel.objects.filter(sender_id=user.id)
-            serializer = ParcelSerializer(parcels, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        elif request.user.role =='admin':
+            parcels = Parcel.objects.filter(sender=request.user)
+        elif request.user.role == 'admin':
             parcels = Parcel.objects.all()
-            serializer = ParcelSerializer(parcels, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'Not Allowed'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = ParcelSerializer(parcels, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     def post(self, request):
         if request.user.role not in ['customer', 'admin']:
             return Response({'message': 'Not Allowed'}, status=status.HTTP_403_FORBIDDEN)
@@ -56,25 +54,21 @@ class ParcelViewset(APIView):
 class ChangeParcelViewset(APIView):
     permission_classes = [IsAuthenticated, CanChangeParcelStatus, CanCreateParcels]
     def get(self, request, id):
-        try:
-            parcel = Parcel.objects.get(id=id)
-            if not parcel.sender.id == request.user.id or request.user.role == 'admin':
-                return Response({'message': 'No access for someone else\'s parcel'}, status=status.HTTP_403_FORBIDDEN)
-        except Parcel.DoesNotExist:
-            return Response({'message': 'Parcel not found'}, status=status.HTTP_404_NOT_FOUND)
+        parcels = Parcel.objects.filter(id=id, sender=request.user)
+        parcel = get_object_or_404(parcels)
+        parcel = Parcel.objects.get(id=id)
+        if not parcel.sender.id == request.user.id:
+            return Response({'message': 'No access for someone else\'s parcel'}, status=status.HTTP_403_FORBIDDEN)
         if request.user.role in ['customer', 'admin']:
             serializer = ParcelSerializer(parcel)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response({'message': 'Not Allowed'}, status=status.HTTP_403_FORBIDDEN)
         
     def put(self, request, id):
-        try:
-            parcel = Parcel.objects.get(id=id)
-            if not parcel.sender.id == request.user.id or request.user.role == 'admin':
-                return Response({'message': 'No access for someone else\'s parcel'}, status=status.HTTP_403_FORBIDDEN)
-        except Parcel.DoesNotExist:
-            return Response({'message': 'Parcel not found'}, status=status.HTTP_404_NOT_FOUND)
-        
+        parcels = Parcel.objects.filter(id=id, sender=request.user)
+        parcel = get_object_or_404(parcels)
+        if not parcel.sender.id == request.user.id:
+            return Response({'message': 'No access for someone else\'s parcel'}, status=status.HTTP_403_FORBIDDEN)
         if request.user.role in ['customer', 'admin']:
             serializer = ParcelSerializer(parcel, data=request.data, partial=True)
             if serializer.is_valid():
@@ -83,13 +77,10 @@ class ChangeParcelViewset(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
     def delete(self, request, id):
-        try:
-            parcel = Parcel.objects.get(id=id)
-            if not parcel.sender.id == request.user.id or request.user.role == 'admin':
-                return Response({'message': 'No access for someone else\'s parcel'}, status=status.HTTP_403_FORBIDDEN)
-        except Parcel.DoesNotExist:
-            return Response({'message': 'Parcel not found'}, status=status.HTTP_404_NOT_FOUND)
-        
+        parcels = Parcel.objects.filter(id=id, sender=request.user)
+        parcel = get_object_or_404(parcels)
+        if not parcel.sender.id == request.user.id:
+            return Response({'message': 'No access for someone else\'s parcel'}, status=status.HTTP_403_FORBIDDEN)
         if request.user.role in ['customer', 'admin']:
             parcel.delete()
             return Response({'message': 'Parcel Deleted Successfuly'}, status=status.HTTP_204_NO_CONTENT)
@@ -98,11 +89,10 @@ class ChangeParcelViewset(APIView):
 
 
 class TakeParcelViewset(APIView):
+    permission_classes = [IsAuthenticated, IsCourier]
     def get(self, request, id):
-        try:
-            parcel = Parcel.objects.get(id=id)
-        except Parcel.DoesNotExist:
-            return Response({'message': 'Parcel not found'}, status=status.HTTP_404_NOT_FOUND)
+        parcels = Parcel.objects.filter(id=id, sender=request.user)
+        parcel = get_object_or_404(parcels)
         if request.user.role == 'courier' and parcel.status not in ['In Transit', 'Delivered']:
             serializer = ParcelSerializer(parcel, data=request.data, partial=True)
             if serializer.is_valid():
@@ -118,12 +108,10 @@ class TakeParcelViewset(APIView):
 class DeliveryProofViewset(APIView):
     permission_classes = [IsAuthenticated, CanChangeParcelStatus]
     def post(self, request, id):
-        try:
-            parcel = Parcel.objects.get(id=id)
-            if not parcel.sender.id == request.user.id and not request.user.role in ['courier', 'admin']:
-                return Response({'message': 'No access for someone else\'s parcel'}, status=status.HTTP_403_FORBIDDEN)
-        except Parcel.DoesNotExist:
-            return Response({'message': 'Parcel not found'}, status=status.HTTP_404_NOT_FOUND)
+        parcels = Parcel.objects.filter(id=id, sender=request.user)
+        parcel = get_object_or_404(parcels)
+        if not parcel.sender.id == request.user.id and not request.user.role in ['courier', 'admin']:
+            return Response({'message': 'No access for someone else\'s parcel'}, status=status.HTTP_403_FORBIDDEN)
         if not parcel.delivery_proof and request.user.role in ['courier', 'admin'] and parcel.courier == request.user:
             serializer = DeliveryProofSerializer(data=request.data)
             if serializer.is_valid():
@@ -142,13 +130,12 @@ class DeliveryProofViewset(APIView):
 
 
 class MarkAsDeliveredView(APIView):
+    permission_classes = [IsAuthenticated]
     def put(self, request, id):
-        try:
-            parcel = Parcel.objects.get(id=id)
-            if not parcel.sender.id == request.user.id:
-                return Response({'message': 'No access for someone else\'s parcel'}, status=status.HTTP_403_FORBIDDEN)
-        except Parcel.DoesNotExist:
-            return Response({'message': 'Parcel not found'}, status=status.HTTP_404_NOT_FOUND)
+        parcels = Parcel.objects.filter(id=id, sender=request.user)
+        parcel = get_object_or_404(parcels)
+        if not parcel.sender.id == request.user.id:
+            return Response({'message': 'No access for someone else\'s parcel'}, status=status.HTTP_403_FORBIDDEN)
         if parcel.delivery_proof and request.user.role in ['customer', 'admin']:
             serializer = ParcelSerializer(parcel, data=request.data, partial=True)
             if serializer.is_valid():
@@ -161,11 +148,9 @@ class ListCourierParcels(APIView):
     def get(self, request):
         if request.user.role == 'courier':
             parcels = Parcel.objects.filter(courier=request.user)
-            serializer = ParcelSerializer(parcels, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
         elif request.user.role == 'admin':
             parcels = Parcel.objects.filter(courier__isnull=False)
-            serializer = ParcelSerializer(parcels, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'Not Allowed'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = ParcelSerializer(parcels, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
